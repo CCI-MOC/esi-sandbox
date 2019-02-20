@@ -11,6 +11,13 @@ INTERFACE=em2
 
 ## sanity checks
 
+if ! mkdir /tmp/.deploy.lock; then
+	echo "***ERROR*** It looks like a deploy is already running" >&2
+	exit 1
+fi
+
+trap "rmdir /tmp/.deploy.lock" EXIT
+
 if ! rpm --quiet -q ceph-ansible; then
 	echo "***ERROR*** Cannot continue without ceph-ansible package" >&2
 	exit 1
