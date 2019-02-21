@@ -37,6 +37,16 @@ fi
 sudo cp files/docker.yml.noftypecheck \
 	/usr/share/ansible/roles/container-registry/tasks/docker.yml
 
+# remove undercloud check in mistral-executor container
+
+if [ ! -f backup/mistral-executor-container-puppet.yaml ]; then
+	cp /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml \
+		backup/mistral-executor-container-puppet.yaml
+fi
+
+sudo cp files/mistral-executor-container-puppet.yaml.noundercloud \
+	/usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml
+
 sudo cp files/lvmlocal.conf /etc/lvm/lvmlocal.conf
 
 ## Deploy
