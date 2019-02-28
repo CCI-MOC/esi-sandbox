@@ -62,6 +62,7 @@ deploy_args=(
   -r $TEMPLATES/roles/Standalone.yaml
   -e $TEMPLATES/environments/services/ironic.yaml
   -e $TEMPLATES/environments/services/ironic-inspector.yaml
+  -e $TEMPLATES/environments/services/neutron-ovs.yaml
 
   # Enable external ceph
   -e $TEMPLATES/environments/ceph-ansible/ceph-ansible-external.yaml

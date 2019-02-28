@@ -35,6 +35,7 @@ parameter_defaults:
   NeutronBridgeMappings: datacentre:br-ctlplane
   NeutronPhysicalBridge: br-ctlplane
   NeutronFlatNetworks: datacentre
+  NeutronMechanismDrivers: [openvswitch, baremetal]
 
   # configure neutron to always provide routes to the metadata
   # service via dhcp
