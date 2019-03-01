@@ -1,5 +1,6 @@
 resource_registry:
   OS::TripleO::Services::NovaCompute: OS::Heat::None
+  OS::TripleO::Services::NovaLibvirt: OS::Heat::None
   OS::TripleO::Services::MistralEngine: /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-engine-container-puppet.yaml
   OS::TripleO::Services::MistralApi: /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-api-container-puppet.yaml
   OS::TripleO::Services::MistralExecutor: /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml
