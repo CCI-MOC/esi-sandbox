@@ -44,7 +44,7 @@ parameter_defaults:
   NeutronEnableForceMetadata: true
 
   # add OESI compute capabilities filter
-  NovaSchedulerDefaultFilters: ['RetryFilter','AvailabilityZoneFilter','ComputeFilter','OESIFilter','ImagePropertiesFilter','ServerGroupAntiAffinityFilter','ServerGroupAffinityFilter']
+  NovaSchedulerDefaultFilters: ['RetryFilter','AvailabilityZoneFilter','ComputeFilter','ComputeCapabilitiesFilter','OESIFilter','ImagePropertiesFilter','ServerGroupAntiAffinityFilter','ServerGroupAffinityFilter']
 
   StandaloneEnableRoutedNetworks: false
   StandaloneHomeDir: /home/stack
