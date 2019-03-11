@@ -1,0 +1,159 @@
+---
+version: '2.0'
+
+name: oesi_user
+description: OESI workflows and actions
+
+workflows:
+
+  list_available_nodes:
+    type: direct
+    output:
+      available_nodes: <% task(list_available_nodes).result.where( $.get('traits').contains('CUSTOM_AVAILABLE')).select({"uuid" => $.uuid, "name" => $.name}) %>
+    tasks:
+      list_available_nodes:
+        action: ironic.node_list
+        input:
+          provision_state: 'available'
+          detail: true
+
+  create_server:
+    type: direct
+    input:
+      - name
+      - image_id: 'e52a7338-90f5-4b57-94ee-cfa5a003cfb1'
+      - flavor_id: '3fb37295-fca9-4ae5-9e60-b7fab203c299'
+    output:
+      message: <% $.message %>
+      server_id: <% $.server_id %>
+    tasks:
+      create_server:
+        action: nova.servers_create
+        input:
+          name: <% $.name %>
+          image: <% $.image_id %>
+          flavor: <% $.flavor_id %>
+        publish:
+          server_id: <% task(create_server).result.id %>
+        on-success:
+          - wait_for_server
+
+      wait_for_server:
+        action: nova.servers_get
+        input:
+          server: <% $.server_id %>
+        publish:
+          status: <% task(wait_for_server).result.status %>
+        on-success:
+          - wait_for_server: <% $.status != 'ACTIVE' and $.status != 'ERROR' %>
+          - message_active: <% $.status = 'ACTIVE' %>
+          - message_error: <% $.status = 'ERROR' %>
+
+      message_active:
+        publish:
+          message: Server is active
+
+      message_error:
+        publish:
+          message: Server has an error
+
+
+  claim_node:
+    type: direct
+    input:
+      - node_ident
+    output:
+      message: <% $.message %>
+
+    tasks:
+      check_node_available:
+        action: ironic.node_get node_id=<% $.node_ident %>
+        publish:
+          node_traits: <% task(check_node_available).result.traits %>
+        on-success:
+          - add_user_trait: <% $.node_traits.contains('CUSTOM_AVAILABLE') %>
+          - add_node_trait: <% $.node_traits.contains('CUSTOM_AVAILABLE') %>
+          - abort_claim: <% not $.node_traits.contains('CUSTOM_AVAILABLE') %>
+
+      abort_claim:
+        publish:
+          message: Node <% $.node_ident %> is not available
+        
+      add_user_trait:
+        action: ironic.node_add_trait
+        input:
+          node_ident: <% $.node_ident %>
+          trait: CUSTOM_<% $.openstack.user_name.toUpper() %>
+        publish:
+          message: Node <% $.node_ident %> claimed
+
+      add_node_trait:
+        action: ironic.node_add_trait
+        input:
+          node_ident: <% $.node_ident %>
+          trait: CUSTOM_<% $.node_ident.toUpper().replace("-", "_") %>
+
+  release_node:
+    type: direct
+    input:
+      - node_ident
+    output:
+      message: Node <% $.node_ident %> released
+
+    tasks:
+      remove_user_trait:
+        action: ironic.node_remove_trait
+        input:
+          node_ident: <% $.node_ident %>
+          trait: CUSTOM_<% $.openstack.user_name.toUpper() %>
+
+      remove_node_trait:
+        action: ironic.node_remove_trait
+        input:
+          node_ident: <% $.node_ident %>
+          trait: CUSTOM_<% $.node_ident.toUpper().replace("-", "_") %>
+
+  create_server_on_node:
+    type: direct
+    input:
+      - name
+      - node_ident
+    output:
+      server_id: <% $.server_id %>
+
+    tasks:
+      create_node_flavor:
+        action: nova.flavors_create
+        input:
+          name: <% $.openstack.user_name %>_<% $.node_ident %>
+          ram: 12800
+          vcpus: 4
+          disk: 19
+          is_public: false
+        publish:
+          flavor_id: <% task(create_node_flavor).result.id %>
+        on-success:
+          - add_node_flavor_traits
+
+      add_node_flavor_traits:
+        action: nova.flavors_set_keys
+        input:
+          flavor: <% $.flavor_id %>
+          metadata: <% dict('resources:CUSTOM_BAREMETAL' => '1', 'resources:DISK_GB' => '0', 'resources:MEMORY_MB' => '0', 'resources:VCPU' => '0', 'trait:CUSTOM_AVAILABLE' => 'required', concat('trait:CUSTOM_',$.openstack.user_name.toUpper()) => 'required', concat('trait:CUSTOM_',$.node_ident.toUpper().replace('-', '_')) => 'required') %>
+        on-success:
+          - create_server_on_node
+
+      create_server_on_node:
+        workflow: oesi_user.create_server
+        input:
+          name: <% $.name %>
+          flavor_id: <% $.flavor_id %>
+        on-complete:
+          - delete_node_flavor
+        publish:
+          server_id: <% task().result %>
+
+      delete_node_flavor:
+        action: nova.flavors_delete
+        input:
+          flavor: <% $.flavor_id %>
