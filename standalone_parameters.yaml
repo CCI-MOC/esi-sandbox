@@ -43,9 +43,6 @@ parameter_defaults:
   # service via dhcp
   NeutronEnableForceMetadata: true
 
-  # add OESI compute capabilities filter
-  NovaSchedulerDefaultFilters: ['RetryFilter','AvailabilityZoneFilter','ComputeFilter','ComputeCapabilitiesFilter','OESIFilter','ImagePropertiesFilter','ServerGroupAntiAffinityFilter','ServerGroupAffinityFilter']
-
   StandaloneEnableRoutedNetworks: false
   StandaloneHomeDir: /home/stack
   StandaloneLocalMtu: 1500
