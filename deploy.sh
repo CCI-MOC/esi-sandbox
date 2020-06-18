@@ -3,7 +3,7 @@
 NETWORK=192.168.1
 IP=$NETWORK.2
 NETMASK=24
-INTERFACE=em2
+INTERFACE=eth0
 
 # Use default template location unless TEMPLATES is set in the environment
 # before running deploy.sh.
@@ -29,23 +29,23 @@ mkdir -p backup
 
 # disable ftype check
 
-if [ ! -f backup/container-registry_tasks_docker.yml ]; then
-	cp /usr/share/ansible/roles/container-registry/tasks/docker.yml \
-		backup/container-registry_tasks_docker.yml
-fi
+#if [ ! -f backup/container-registry_tasks_docker.yml ]; then
+#	cp /usr/share/ansible/roles/container-registry/tasks/docker.yml \
+#		backup/container-registry_tasks_docker.yml
+#fi
 
-sudo cp files/docker.yml.noftypecheck \
-	/usr/share/ansible/roles/container-registry/tasks/docker.yml
+#sudo cp files/docker.yml.noftypecheck \
+#	/usr/share/ansible/roles/container-registry/tasks/docker.yml
 
 # remove undercloud check in mistral-executor container
 
-if [ ! -f backup/mistral-executor-container-puppet.yaml ]; then
-	cp /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml \
-		backup/mistral-executor-container-puppet.yaml
-fi
+#if [ ! -f backup/mistral-executor-container-puppet.yaml ]; then
+#	cp /usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml \
+#		backup/mistral-executor-container-puppet.yaml
+#fi
 
-sudo cp files/mistral-executor-container-puppet.yaml.noundercloud \
-	/usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml
+#sudo cp files/mistral-executor-container-puppet.yaml.noundercloud \
+#	/usr/share/openstack-tripleo-heat-templates/deployment/mistral/mistral-executor-container-puppet.yaml
 
 sudo cp files/lvmlocal.conf /etc/lvm/lvmlocal.conf
 
@@ -63,11 +63,12 @@ deploy_args=(
   -e $TEMPLATES/environments/services/ironic.yaml
   -e $TEMPLATES/environments/services/ironic-inspector.yaml
   -e $TEMPLATES/environments/services/neutron-ovs.yaml
+  -e $TEMPLATES/environments/services/neutron-ml2-ansible.yaml
 
   # Enable external ceph
-  -e $TEMPLATES/environments/ceph-ansible/ceph-ansible-external.yaml
-  -e ./ceph-local-config.yaml
-  -e ./ceph-credentials.yaml
+  #-e $TEMPLATES/environments/ceph-ansible/ceph-ansible-external.yaml
+  #-e ./ceph-local-config.yaml
+  #-e ./ceph-credentials.yaml
 
   # Local settings
   -e ./containers-prepare-parameters.yaml
