@@ -18,10 +18,10 @@ fi
 
 trap "rmdir /tmp/.deploy.lock" EXIT
 
-if ! rpm --quiet -q ceph-ansible; then
-	echo "***ERROR*** Cannot continue without ceph-ansible package" >&2
-	exit 1
-fi
+# if ! rpm --quiet -q ceph-ansible; then
+# 	echo "***ERROR*** Cannot continue without ceph-ansible package" >&2
+# 	exit 1
+# fi
 
 ## Create backup of modified packaged files and copy new versions
 
