@@ -2,6 +2,8 @@
 
 Deployment based on <https://docs.openstack.org/tripleo-docs/latest/install/containers_deployment/standalone.html>.
 
+A specific installation steps with Ussuri is [here](ussuri-install.md).
+
 Configure package repositories and install `python-tripleoclient`:
 
 ```
