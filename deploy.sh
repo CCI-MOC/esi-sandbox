@@ -1,9 +1,8 @@
 #!/bin/sh
 
-NETWORK=192.168.1
+NETWORK=192.168.10
 IP=$NETWORK.2
 NETMASK=24
-INTERFACE=eth0
 
 # Use default template location unless TEMPLATES is set in the environment
 # before running deploy.sh.
