@@ -3,7 +3,7 @@
 NETWORK=192.168.1
 IP=$NETWORK.2
 NETMASK=24
-INTERFACE=eth0
+INTERFACE=ens10
 
 # Use default template location unless TEMPLATES is set in the environment
 # before running deploy.sh.
