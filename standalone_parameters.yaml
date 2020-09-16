@@ -1,7 +1,7 @@
 resource_registry:
   OS::TripleO::Services::NovaCompute: OS::Heat::None
   OS::TripleO::Services::NovaLibvirt: OS::Heat::None
-  #OS::TripleO::Services::Redis: OS::Heat::None  
+  OS::TripleO::Services::Redis: /usr/share/openstack-tripleo-heat-templates/deployment/database/redis-pacemaker-puppet.yaml
 
 parameter_defaults:
   CertmongerCA: local
@@ -23,10 +23,20 @@ parameter_defaults:
     includes:
     - neutron-server
     modify_role: tripleo-modify-image
-    modify_append_tag: "-hotfix"
+    modify_append_tag: "-hotfix2"
     modify_vars:
       tasks_from: modify_image.yml
       modify_dir_path: /home/stack/esi-sandbox/custom-dockerfiles/neutron-server
+  - push_destination: 192.168.1.2:8787
+    set:
+      namespace: docker.io/tripleou
+    includes:
+    - cinder-volume
+    modify_role: tripleo-modify-image
+    modify_append_tag: "-hotfix"
+    modify_vars:
+      tasks_from: modify_image.yml
+      modify_dir_path: /home/stack/esi-sandbox/custom-dockerfiles/cinder-volume
   ControlPlaneStaticRoutes: []
   Debug: true
   DeploymentUser: stack
@@ -35,6 +45,7 @@ parameter_defaults:
     - 8.8.8.8
   DockerInsecureRegistryAddress:
   - 192.168.1.2:8787
+
   NeutronPublicInterface: ens10
   # domain name used by the host
   #NeutronDnsDomain: example.com.
@@ -44,6 +55,8 @@ parameter_defaults:
   NeutronPhysicalBridge: br-ctlplane
   NeutronFlatNetworks: datacentre
   NeutronMechanismDrivers: [openvswitch, baremetal]
+  NeutronNetworkVLANRanges: datacentre:611:620
+  NeutronTypeDrivers: [local, geneve, vlan, flat, vxlan]
 
   # configure neutron to always provide routes to the metadata
   # service via dhcp
@@ -62,5 +75,12 @@ parameter_defaults:
   - ipmitool
   IronicCleaningDiskErase: 'metadata'
   IronicInspectorSubnets:
-  - ip_range: 192.168.1.200,192.168.1.250
-  IronicInspectorInterface: 'br-ctlplane'
+  - ip_range: 192.168.11.200,192.168.11.250
+    gateway: 192.168.11.254
+  IronicInspectorInterface: 'inspector'
+
+  StandaloneExtraConfig:
+    ironic::config::ironic_config:
+      inspector/require_managed_boot:
+        value: "true"
+    ironic::inspector::pxe_filter::driver: "noop"
