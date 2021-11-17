@@ -2,41 +2,44 @@ resource_registry:
   OS::TripleO::Services::NovaCompute: OS::Heat::None
   OS::TripleO::Services::NovaLibvirt: OS::Heat::None
   OS::TripleO::Services::Redis: /usr/share/openstack-tripleo-heat-templates/deployment/database/redis-pacemaker-puppet.yaml
+  #OS::TripleO::Services::Redis: OS::Heat::None
 
 parameter_defaults:
   CertmongerCA: local
   CloudName: 192.168.1.2
+  ContainerCli: podman
   ContainerImagePrepare:
   - set:
       ceph_image: daemon
-      ceph_namespace: docker.io/ceph
-      ceph_tag: v3.0.3-stable-3.0-luminous-centos-7-x86_64
-      name_prefix: centos-binary-
+      ceph_namespace: quay.io/ceph
+      ceph_tag: v6.0.4-stable-6.0-pacific-centos-8-x86_64
+      name_prefix: openstack-
       name_suffix: ''
-      namespace: docker.io/tripleou
+      namespace: quay.io/tripleowallaby
       neutron_driver: ovn
       tag: current-tripleo
     tag_from_label: rdo_version
   - push_destination: 192.168.1.2:8787
     set:
-      namespace: docker.io/tripleou
+      namespace: quay.io/tripleowallaby  
     includes:
     - neutron-server
     modify_role: tripleo-modify-image
-    modify_append_tag: "-hotfix2"
+    modify_append_tag: "-hotfix-wallaby"
     modify_vars:
       tasks_from: modify_image.yml
       modify_dir_path: /home/stack/esi-sandbox/custom-dockerfiles/neutron-server
   - push_destination: 192.168.1.2:8787
     set:
-      namespace: docker.io/tripleou
+      namespace: quay.io/tripleowallaby  
     includes:
     - cinder-volume
     modify_role: tripleo-modify-image
-    modify_append_tag: "-hotfix"
+    modify_append_tag: "-hotfix-wallaby"
     modify_vars:
       tasks_from: modify_image.yml
       modify_dir_path: /home/stack/esi-sandbox/custom-dockerfiles/cinder-volume
+  ContainerImagePrepareDebug: true     
   ControlPlaneStaticRoutes: []
   Debug: true
   DeploymentUser: stack
@@ -45,7 +48,7 @@ parameter_defaults:
     - 8.8.8.8
   DockerInsecureRegistryAddress:
   - 192.168.1.2:8787
-
+  LocalContainerRegistry: 192.168.1.2
   NeutronPublicInterface: ens10
   # domain name used by the host
   #NeutronDnsDomain: example.com.
@@ -58,10 +61,18 @@ parameter_defaults:
   NeutronNetworkVLANRanges: datacentre:611:620
   NeutronTypeDrivers: [local, geneve, vlan, flat, vxlan]
 
+  NovaLibvirtVolumeUseMultipath:  true
+  NovaComputeOptVolumes:
+    - /etc/multipath.conf:/etc/multipath.conf:ro
+    - /etc/multipath/:/etc/multipath/:rw
+  CinderVolumeOptVolumes:
+    - /etc/multipath.conf:/etc/multipath.conf:ro
+    - /etc/multipath/:/etc/multipath/:rw
+
   # configure neutron to always provide routes to the metadata
   # service via dhcp
   NeutronEnableForceMetadata: true
-
+  SELinuxMode: permissive
   StandaloneEnableRoutedNetworks: false
   StandaloneHomeDir: /home/stack
   StandaloneLocalMtu: 1500
@@ -83,4 +94,16 @@ parameter_defaults:
     ironic::config::ironic_config:
       inspector/require_managed_boot:
         value: "true"
+      #pxe/pxe_append_params:
+      #  value: "nofb nomodeset vga=normal rootpwd=\"$$1$$lmWunu1t$$E2zNKBRw5I0ljfjQLYAnD0\" selinux=0"	
+      #neutron/inspection_network:
+      #  value: "provisioning"
+      #DEFAULT/rpc_response_timeout:
+      #  value: "300"
+
+    # LKS: we can try to set this, but (a) I'm not sure if "noop" is valid or
+    # if it should be empty or what, and (b) I'm not sure if we can set this here 
+    # since the setting is managed by the ironic-inspector-containter-puppet.yaml
+    # template.
+    #
     ironic::inspector::pxe_filter::driver: "noop"
