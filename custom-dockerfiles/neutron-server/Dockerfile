@@ -3,7 +3,8 @@ FROM quay.io/tripleowallaby/openstack-neutron-server:current-tripleo
 USER root
 WORKDIR /tmp
 
-RUN yum -y install git && \
+RUN sed -i 's/$stream/8-stream/g' /etc/yum.repos.d/CentOS-* && \
+        yum -y install git && \
 	git clone https://github.com/ansible-network/network-runner && \
 	cd network-runner && \
         git checkout 0.3.6 && \
