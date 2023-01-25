@@ -2,8 +2,9 @@
 
 NETWORK=192.168.1
 IP=$NETWORK.2
+VIP=192.168.1.3
 NETMASK=24
-INTERFACE=eth0
+INTERFACE=ens10
 
 # Use default template location unless TEMPLATES is set in the environment
 # before running deploy.sh.
@@ -18,10 +19,10 @@ fi
 
 trap "rmdir /tmp/.deploy.lock" EXIT
 
-# if ! rpm --quiet -q ceph-ansible; then
-# 	echo "***ERROR*** Cannot continue without ceph-ansible package" >&2
-# 	exit 1
-# fi
+if ! rpm --quiet -q ceph-ansible; then
+        echo "***ERROR*** Cannot continue without ceph-ansible package" >&2
+        exit 1
+fi
 
 ## Create backup of modified packaged files and copy new versions
 
@@ -52,7 +53,7 @@ sudo cp files/lvmlocal.conf /etc/lvm/lvmlocal.conf
 ## Deploy
 
 openstack tripleo container image prepare default \
-  --output-env-file ./containers-prepare-parameters.yaml
+	  --output-env-file ./containers-prepare-parameters.yaml
 
 mkdir -p deploy
 mkdir -p /tmp/ceph_ansible_fetch
@@ -66,9 +67,9 @@ deploy_args=(
   -e $TEMPLATES/environments/services/neutron-ml2-ansible.yaml
 
   # Enable external ceph
-  #-e $TEMPLATES/environments/ceph-ansible/ceph-ansible-external.yaml
-  #-e ./ceph-local-config.yaml
-  #-e ./ceph-credentials.yaml
+  -e $TEMPLATES/environments/ceph-ansible/ceph-ansible-external.yaml
+  -e ./ceph-local-config.yaml
+  -e ./ceph-credentials.yaml
 
   # Local settings
   -e ./containers-prepare-parameters.yaml
@@ -82,8 +83,10 @@ fi
 
 sudo openstack tripleo deploy \
   --templates $TEMPLATES \
-  --local-ip=$IP/$NETMASK \
+  --local-ip $IP/$NETMASK \
+  --control-virtual-ip $VIP \
   --output-dir deploy \
   --standalone \
+  --deployment-user stack \
   "${deploy_args[@]}" \
   "$@"
