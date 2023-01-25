@@ -1,17 +1,14 @@
 parameter_defaults:
-  NovaRbdPoolName: esi
-  CinderRbdPoolName: esi
-  CinderBackupRbdPoolName: esi
-  GlanceRbdPoolName: esi
-  GnocchiRbdPoolName: esi
-  CephClientUserName: admin
+  #CinderRbdPoolName: esi
+  #CinderBackupRbdPoolName: esi
+  #CephClientUserName: admin
 
-  CephExternalMonHost: '192.168.16.1,192.168.16.2,192.168.16.3'
+  CephExternalMonHost: 10.30.3.1
 
   LocalCephAnsibleFetchDirectoryBackup: /tmp/ceph_ansible_fetch
 
   # Disable ceph for cinder, because it's not supported for boot-from-volume
   # with ironic.
-  CinderEnableRbdBackend: false
-  CinderEnableIscsiBackend: true
-  CinderBackupBackend: swift
+  CinderEnableRbdBackend: true
+  #CinderEnableIscsiBackend: true
+  #CinderBackupBackend: swift
